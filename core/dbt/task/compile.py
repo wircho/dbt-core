@@ -5,7 +5,7 @@ from dbt.contracts.graph.manifest import WritableManifest
 from dbt.contracts.results import RunStatus, RunResult
 from dbt.events.base_types import EventLevel
 from dbt.events.functions import fire_event
-from dbt.events.types import CompiledNode, Note
+from dbt.events.types import CompiledNode, CompileComplete, Note
 from dbt.exceptions import DbtInternalError, DbtRuntimeError
 from dbt.graph import ResourceTypeSelector
 from dbt.node_types import NodeType
@@ -95,6 +95,8 @@ class CompileTask(GraphRunnableTask):
                     unique_id=result.node.unique_id,
                 )
             )
+
+        fire_event(CompileComplete())
 
     def _get_deferred_manifest(self) -> Optional[WritableManifest]:
         if not self.args.defer:
