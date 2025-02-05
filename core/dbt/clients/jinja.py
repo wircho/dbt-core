@@ -28,8 +28,6 @@ from dbt.node_types import ModelLanguage
 
 from dbt.context.mappings import MutableMappingWrapper, ImmutableMappingWrapper
 
-
-
 SUPPORTED_LANG_ARG = jinja2.nodes.Name("supported_languages", "param")
 
 
