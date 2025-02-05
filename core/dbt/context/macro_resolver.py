@@ -7,7 +7,6 @@ from dbt.clients.jinja import MacroGenerator
 MacroNamespace = Dict[str, Macro]
 
 
-
 # This class builds the MacroResolver by adding macros
 # to various categories for finding macros in the right order,
 # so that higher precedence macros are found first.
