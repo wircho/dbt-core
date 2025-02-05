@@ -62,8 +62,6 @@ class MacroNamespace(Mapping):
 
     # special iterator using special keys
     def __iter__(self) -> Iterator[str]:
-        # import pdb
-        # pdb.set_trace()
         for key in self._keys():
             yield key
 
