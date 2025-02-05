@@ -124,25 +124,6 @@ class MacroNamespaceBuilder:
         self.thread_ctx = thread_ctx
         self.node = node
 
-    #     macro_func: MacroGenerator = MacroGenerator(macro, ctx, self.node, self.thread_ctx)
-    #     # if macro.name == "ref":
-    #     #     import pdb
-    #     #     pdb.set_trace()
-    #     #     print(f"Added offending macro {id(macro_func)}!")
-
-    #     # internal macros (from plugins) will be processed separately from
-    #     # project macros, so store them in a different place
-    #     if macro.package_name in self.internal_package_names:
-    #         self._add_macro_to(self.internal_packages, macro, macro_func)
-    #     else:
-    #         # if it's not an internal package
-    #         self._add_macro_to(self.packages, macro, macro_func)
-    #         # add to locals if it's the package this node is in
-    #         if macro.package_name == self.search_package:
-    #             self.locals[macro_name] = macro_func
-    #         # add to globals if it's in the root package
-    #         elif macro.package_name == self.root_package:
-    #             self.globals[macro_name] = macro_func
 
     def add_macros(self, package_name, macros: Dict[str, Macro], macro_generator) -> None:
         mapped_dict = LazyTransformedDict(macros, macro_generator)
