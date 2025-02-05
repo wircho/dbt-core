@@ -11,13 +11,6 @@ from .configured import ConfiguredContext
 from .macros import MacroNamespace, MacroNamespaceBuilder
 
 
-import time
-TIME_COUNTER = 0.0
-
-from collections import ChainMap
-
-
-
 class ManifestContext(ConfiguredContext):
     """The Macro context has everything in the target context, plus the macros
     in the manifest.
