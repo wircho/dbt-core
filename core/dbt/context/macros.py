@@ -146,8 +146,6 @@ class MacroNamespaceBuilder:
                 self.locals.update(mapped_dict)
             elif package_name == self.root_package:
                 self.globals.update(mapped_dict)
-        # for macro in macros:
-        #     self.add_macro(package_name, macro, ctx)
 
     def build_namespace(
         self, macros_by_package: Dict[str, Dict[str, Macro]], ctx: Dict[str, Any]
