@@ -81,10 +81,6 @@ class MacroGenerator(CallableMacroGenerator):
 
     # this makes MacroGenerator objects callable like functions
     def __call__(self, *args, **kwargs):
-        # if hasattr(self, "macro") and self.macro.name == "ref" and args == ("trust_platform_reports_history_legacy_v2",):
-        #     import pdb
-        #     pdb.set_trace()
-        #     print(f"Calling offending macro {id(self)}!")
         with self.track_call():
             return self.call_macro(*args, **kwargs)
 
