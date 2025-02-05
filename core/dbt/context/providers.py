@@ -1799,7 +1799,6 @@ def generate_parse_semantic_models(
     }
 
 
-
 # This class is currently used by the schema parser in order
 # to limit the number of macros in the context by using
 # the TestMacroNamespace

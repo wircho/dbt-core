@@ -426,7 +426,6 @@ class SourceParser(YamlReader):
             self.manifest.add_source(self.yaml.file, source_def)
 
 
-
 # This class has two subclasses: NodePatchParser and MacroPatchParser
 class PatchParser(YamlReader, Generic[NonSourceTarget, Parsed]):
     @abstractmethod
@@ -583,9 +582,6 @@ class PatchParser(YamlReader, Generic[NonSourceTarget, Parsed]):
                         validate_and_rename(column, self.is_root_project)
 
     def patch_node_config(self, node, patch):
-
-       
-
         if "access" in patch.config:
             if AccessType.is_valid(patch.config["access"]):
                 patch.config["access"] = AccessType(patch.config["access"])
@@ -596,15 +592,12 @@ class PatchParser(YamlReader, Generic[NonSourceTarget, Parsed]):
                 )
         # Get the ContextConfig that's used in calculating the config
         # This must match the model resource_type that's being patched
-        
-        
         config = ContextConfig(
             self.schema_parser.root_project,
             node.fqn,
             node.resource_type,
             self.schema_parser.project.project_name,
         )
-        
         # We need to re-apply the config_call_dict after the patch config
         config._config_call_dict = node.config_call_dict
         self.schema_parser.update_parsed_node_config(node, config, patch_config_dict=patch.config)
@@ -703,13 +696,9 @@ class NodePatchParser(PatchParser[NodeTarget, ParsedNodePatch], Generic[NodeTarg
                 )
                 return
 
-
         # patches can't be overwritten
         node = self.manifest.nodes.get(unique_id)
         if node:
-
-            
-
             if node.patch_path:
                 package_name, existing_file_path = node.patch_path.split("://")
                 raise DuplicatePatchPathError(patch, existing_file_path)
@@ -717,16 +706,10 @@ class NodePatchParser(PatchParser[NodeTarget, ParsedNodePatch], Generic[NodeTarg
             source_file.append_patch(patch.yaml_key, node.unique_id)
             # re-calculate the node config with the patch config.  Always do this
             # for the case when no config is set to ensure the default of true gets captured
-
-            
-
             if patch.config:
                 self.patch_node_config(node, patch)
 
-            
-
             self.patch_node_properties(node, patch)
-
 
     def patch_node_properties(self, node, patch: "ParsedNodePatch"):
         """Given a ParsedNodePatch, add the new information to the node."""
@@ -768,7 +751,6 @@ class ModelPatchParser(NodePatchParser[UnparsedModelUpdate]):
         return VersionedTestBlock.from_yaml_block(self.yaml, node)
 
     def parse_patch(self, block: TargetBlock[UnparsedModelUpdate], refs: ParserRef) -> None:
-        
         target = block.target
         if NodeType.Model.pluralize() != target.yaml_key:
             warn_or_error(
@@ -899,8 +881,6 @@ class ModelPatchParser(NodePatchParser[UnparsedModelUpdate]):
                 source_file.append_patch(
                     versioned_model_patch.yaml_key, versioned_model_node.unique_id
                 )
-
-                
             self.manifest.rebuild_ref_lookup()
             self.manifest.rebuild_disabled_lookup()
 
