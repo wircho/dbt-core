@@ -74,6 +74,9 @@ class Parser(BaseParser[FinalValue], Generic[FinalValue]):
         super().__init__(project, manifest)
         self.root_project = root_project
 
+import time
+TIME_COUNTER = 0.0
+
 
 class RelationUpdate:
     def __init__(self, config: RuntimeConfig, manifest: Manifest, component: str) -> None:
@@ -313,6 +316,8 @@ class ConfiguredParser(
         values set in _build_intermediate_parsed_node.
         """
 
+        _start = time.time()
+
         # build_config_dict takes the config_call_dict in the ContextConfig object
         # and calls calculate_node_config to combine dbt_project configs and
         # config calls from SQL files, plus patch configs (from schema files)
@@ -387,12 +392,15 @@ class ConfiguredParser(
         # render each hook and collect refs/sources
         hooks = list(itertools.chain(parsed_node.config.pre_hook, parsed_node.config.post_hook))
         # skip context rebuilding if there aren't any hooks
-        if not hooks:
-            return
-        if not context:
-            context = self._context_for(parsed_node, config)
-        for hook in hooks:
-            get_rendered(hook.sql, context, parsed_node, capture_macros=True)
+        if hooks:
+            if not context:
+                context = self._context_for(parsed_node, config)
+            for hook in hooks:
+                get_rendered(hook.sql, context, parsed_node, capture_macros=True)
+
+        global TIME_COUNTER
+        TIME_COUNTER += time.time() - _start
+        print(f"TIME_COUNTER: {TIME_COUNTER}")
 
     def initial_config(self, fqn: List[str]) -> ContextConfig:
         config_version = min([self.project.config_version, self.root_project.config_version])

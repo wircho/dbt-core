@@ -34,6 +34,8 @@ from dbt.adapters.factory import get_adapter, get_adapter_package_names
 from dbt.node_types import NodeType
 from dbt.context.macro_resolver import MacroResolver
 
+import time
+TIME_COUNTER = 0.0
 
 # This parser handles the tests that are defined in "schema" (yaml) files, on models,
 # sources, etc. The base generic test is handled by the GenericTestParser
@@ -211,6 +213,12 @@ class SchemaGenericTestParser(SimpleParser):
         else:
             file_key_name = f"{target.yaml_key}.{target.name}"
 
+
+        
+
+        raw_code = builder.build_raw_code()
+
+        # This takes 8 seconds
         node = self.create_test_node(
             target=target,
             path=compiled_path,
@@ -218,12 +226,16 @@ class SchemaGenericTestParser(SimpleParser):
             fqn=fqn,
             tags=tags,
             name=builder.fqn_name,
-            raw_code=builder.build_raw_code(),
+            raw_code=raw_code,
             column_name=column_name,
             test_metadata=metadata,
             file_key_name=file_key_name,
         )
+
+        # This takes 12+ seconds
         self.render_test_update(node, config, builder, schema_file_id)
+
+        
 
         return node
 
@@ -276,16 +288,23 @@ class SchemaGenericTestParser(SimpleParser):
         # to the context in rendering processing
         node.depends_on.add_macro(macro_unique_id)
         if macro_unique_id in ["macro.dbt.test_not_null", "macro.dbt.test_unique"]:
+            
+
             config_call_dict = builder.get_static_config()
             config._config_call_dict = config_call_dict
             # This sets the config from dbt_project
+
+            # THIS IS IS THE LONGEST STEP HERE
             self.update_parsed_node_config(node, config)
+
             # source node tests are processed at patch_source time
             if isinstance(builder.target, UnpatchedSourceDefinition):
                 sources = [builder.target.fqn[-2], builder.target.fqn[-1]]
                 node.sources.append(sources)
             else:  # all other nodes
                 node.refs.append(RefArgs(name=builder.target.name, version=builder.version))
+
+            
         else:
             try:
                 # make a base context that doesn't have the magic kwargs field

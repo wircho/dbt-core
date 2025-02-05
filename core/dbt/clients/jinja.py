@@ -26,6 +26,9 @@ from dbt.exceptions import (
 )
 from dbt.node_types import ModelLanguage
 
+from dbt.context.mappings import MutableMappingWrapper, ImmutableMappingWrapper
+
+
 
 SUPPORTED_LANG_ARG = jinja2.nodes.Name("supported_languages", "param")
 
@@ -80,6 +83,10 @@ class MacroGenerator(CallableMacroGenerator):
 
     # this makes MacroGenerator objects callable like functions
     def __call__(self, *args, **kwargs):
+        # if hasattr(self, "macro") and self.macro.name == "ref" and args == ("trust_platform_reports_history_legacy_v2",):
+        #     import pdb
+        #     pdb.set_trace()
+        #     print(f"Calling offending macro {id(self)}!")
         with self.track_call():
             return self.call_macro(*args, **kwargs)
 
@@ -121,6 +128,12 @@ def get_rendered(
     capture_macros: bool = False,
     native: bool = False,
 ) -> Any:
+    # if not isinstance(ctx, dict):
+    #     import pdb; pdb.set_trace()
+    #     print("ctx is not a dict!!")
+    # if 'dbt_unit_testing' not in ctx and len(ctx) > 30:
+    #     import pdb; pdb.set_trace()
+    #     print("dbt_unit_testing not in ctx!!")
     # performance optimization: if there are no jinja control characters in the
     # string, we can just return the input. Fall back to jinja if the type is
     # not a string or if native rendering is enabled (so '1' -> 1, etc...)
