@@ -5,6 +5,10 @@ from dbt.contracts.graph.nodes import Macro
 from dbt.include.global_project import PROJECT_NAME as GLOBAL_PROJECT_NAME
 from dbt.exceptions import DuplicateMacroNameError, PackageNotFoundForMacroError
 
+from dbt.context.mappings import LazyTransformedDict, MutableMappingWrapper
+
+from collections import ChainMap
+
 
 FlatNamespace = Dict[str, MacroGenerator]
 NamespaceMember = Union[FlatNamespace, MacroGenerator]
@@ -31,6 +35,10 @@ class MacroNamespace(Mapping):
         self.local_namespace: FlatNamespace = local_namespace
         self.packages: Dict[str, FlatNamespace] = packages
         self.global_project_namespace: FlatNamespace = global_project_namespace
+
+    def copy(self) -> 'ChainMap':
+        # Rather than a whole copy, a new mutable chain map is created
+        return ChainMap({}, self)
 
     def _search_order(self) -> Iterable[Union[FullNamespace, FlatNamespace]]:
         yield self.local_namespace  # local package
@@ -65,6 +73,14 @@ class MacroNamespace(Mapping):
             if key in dct:
                 return dct[key]
         raise KeyError(key)
+    
+    def __contains__(self, key):
+        for dct in self._search_order():
+            if key in dct:
+                return True
+            
+    def update(self, other):
+        raise NotImplementedError
 
     def get_from_package(self, package_name: Optional[str], name: str) -> Optional[MacroGenerator]:
         if package_name is None:
@@ -98,67 +114,50 @@ class MacroNamespaceBuilder:
         # macro_func is added here if in root package, since
         # the root package acts as a "global" namespace, overriding
         # everything else except local external package macro calls
-        self.globals: FlatNamespace = {}
+        self.globals: FlatNamespace = MutableMappingWrapper({})
         # macro_func is added here if it's the package for this node
-        self.locals: FlatNamespace = {}
+        self.locals: FlatNamespace = MutableMappingWrapper({})
         # Create a dictionary of [package name][macro name] =
         #     MacroGenerator object which acts like a function
-        self.internal_packages: Dict[str, FlatNamespace] = {}
-        self.packages: Dict[str, FlatNamespace] = {}
+        self.internal_packages: Dict[str, FlatNamespace] = MutableMappingWrapper({})
+        self.packages: Dict[str, FlatNamespace] = MutableMappingWrapper({})
         self.thread_ctx = thread_ctx
         self.node = node
 
-    def _add_macro_to(
-        self,
-        hierarchy: Dict[str, FlatNamespace],
-        macro: Macro,
-        macro_func: MacroGenerator,
-    ):
-        if macro.package_name in hierarchy:
-            namespace = hierarchy[macro.package_name]
+
+    def add_macros(self, package_name, macros: Dict[str, Macro], macro_generator) -> None:
+        mapped_dict = LazyTransformedDict(macros, macro_generator)
+        if package_name in self.internal_package_names:
+            if package_name in self.internal_packages:
+                namespace = self.internal_packages[package_name]
+            else:
+                namespace = MutableMappingWrapper({})
+                self.internal_packages[package_name] = namespace
+            namespace.update(mapped_dict)
         else:
-            namespace = {}
-            hierarchy[macro.package_name] = namespace
+            if package_name in self.packages:
+                namespace = self.packages[package_name]
+            else:
+                namespace = MutableMappingWrapper({})
+                self.packages[package_name] = namespace
+            namespace.update(mapped_dict)
 
-        if macro.name in namespace:
-            raise DuplicateMacroNameError(macro_func.macro, macro, macro.package_name)
-        hierarchy[macro.package_name][macro.name] = macro_func
-
-    def add_macro(self, macro: Macro, ctx: Dict[str, Any]) -> None:
-        macro_name: str = macro.name
-
-        # MacroGenerator is in clients/jinja.py
-        # a MacroGenerator object is a callable object that will
-        # execute the MacroGenerator.__call__ function
-        macro_func: MacroGenerator = MacroGenerator(macro, ctx, self.node, self.thread_ctx)
-
-        # internal macros (from plugins) will be processed separately from
-        # project macros, so store them in a different place
-        if macro.package_name in self.internal_package_names:
-            self._add_macro_to(self.internal_packages, macro, macro_func)
-        else:
-            # if it's not an internal package
-            self._add_macro_to(self.packages, macro, macro_func)
-            # add to locals if it's the package this node is in
-            if macro.package_name == self.search_package:
-                self.locals[macro_name] = macro_func
-            # add to globals if it's in the root package
-            elif macro.package_name == self.root_package:
-                self.globals[macro_name] = macro_func
-
-    def add_macros(self, macros: Iterable[Macro], ctx: Dict[str, Any]) -> None:
-        for macro in macros:
-            self.add_macro(macro, ctx)
+            if package_name == self.search_package:
+                self.locals.update(mapped_dict)
+            elif package_name == self.root_package:
+                self.globals.update(mapped_dict)
 
     def build_namespace(
         self, macros_by_package: Dict[str, Dict[str, Macro]], ctx: Dict[str, Any]
     ) -> MacroNamespace:
-        for package in macros_by_package.values():
-            self.add_macros(package.values(), ctx)
+        def macro_generator(macro: Macro) -> MacroGenerator:
+            return MacroGenerator(macro, ctx, self.node, self.thread_ctx)
+        for package_name, package in macros_by_package.items():
+            self.add_macros(package_name, package, macro_generator)
 
         # Iterate in reverse-order and overwrite: the packages that are first
         # in the list are the ones we want to "win".
-        global_project_namespace: FlatNamespace = {}
+        global_project_namespace: FlatNamespace = MutableMappingWrapper({})
         for pkg in reversed(self.internal_package_names_order):
             if pkg in self.internal_packages:
                 # add the macros pointed to by this package name

@@ -387,12 +387,12 @@ class ConfiguredParser(
         # render each hook and collect refs/sources
         hooks = list(itertools.chain(parsed_node.config.pre_hook, parsed_node.config.post_hook))
         # skip context rebuilding if there aren't any hooks
-        if not hooks:
-            return
-        if not context:
-            context = self._context_for(parsed_node, config)
-        for hook in hooks:
-            get_rendered(hook.sql, context, parsed_node, capture_macros=True)
+        if hooks:
+            if not context:
+                context = self._context_for(parsed_node, config)
+            for hook in hooks:
+                get_rendered(hook.sql, context, parsed_node, capture_macros=True)
+
 
     def initial_config(self, fqn: List[str]) -> ContextConfig:
         config_version = min([self.project.config_version, self.root_project.config_version])

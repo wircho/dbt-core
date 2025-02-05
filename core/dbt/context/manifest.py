@@ -65,7 +65,6 @@ class ManifestContext(ConfiguredContext):
             dct.update(self.namespace.project_namespace)
         else:
             dct.update(self.namespace)
-
         return dct
 
     @contextproperty()

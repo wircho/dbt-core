@@ -21,6 +21,7 @@ from dbt.exceptions import (
     SetStrictWrongTypeError,
     ZipStrictWrongTypeError,
 )
+from dbt.context.mappings import MutableMappingWrapper
 from dbt_common.context import get_invocation_context
 from dbt_common.exceptions.macros import MacroReturn
 from dbt_common.events.functions import fire_event, get_invocation_id
@@ -167,7 +168,7 @@ class Var:
         if not isinstance(raw, str):
             return raw
 
-        return get_rendered(raw, dict(self._context))
+        return get_rendered(raw, self._context.copy())
 
     def __call__(self, var_name: str, default: Any = _VAR_NOTSET) -> Any:
         if self.has_var(var_name):
@@ -178,6 +179,7 @@ class Var:
             return self.get_missing_var(var_name)
 
 
+
 class BaseContext(metaclass=ContextMeta):
     # Set by ContextMeta
     _context_members_: Dict[str, Any]
@@ -185,7 +187,7 @@ class BaseContext(metaclass=ContextMeta):
 
     # subclass is TargetContext
     def __init__(self, cli_vars: Dict[str, Any]) -> None:
-        self._ctx: Dict[str, Any] = {}
+        self._ctx: Dict[str, Any] = MutableMappingWrapper({})
         self.cli_vars: Dict[str, Any] = cli_vars
         self.env_vars: Dict[str, Any] = {}
 
