@@ -226,7 +226,7 @@ class SchemaGenericTestParser(SimpleParser):
             fqn=fqn,
             tags=tags,
             name=builder.fqn_name,
-            raw_code=raw_code,
+            raw_code=builder.build_raw_code(),
             column_name=column_name,
             test_metadata=metadata,
             file_key_name=file_key_name,
