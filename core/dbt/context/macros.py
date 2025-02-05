@@ -69,10 +69,6 @@ class MacroNamespace(Mapping):
         return len(self._keys())
 
     def __getitem__(self, key: str) -> NamespaceMember:
-        # if key == "dbt_unit_testing":
-        #     import pdb
-        #     pdb.set_trace()
-        #     print("Someone is trying to access dbt_unit_testing!!")
         for dct in self._search_order():
             if key in dct:
                 return dct[key]
