@@ -21,6 +21,7 @@ from dbt.exceptions import (
     SetStrictWrongTypeError,
     ZipStrictWrongTypeError,
 )
+from dbt.context.mappings import MutableMappingWrapper
 from dbt_common.context import get_invocation_context
 from dbt_common.exceptions.macros import MacroReturn
 from dbt_common.events.functions import fire_event, get_invocation_id
@@ -178,7 +179,6 @@ class Var:
             return self.get_missing_var(var_name)
 
 
-from dbt.context.mappings import MutableMappingWrapper
 
 class BaseContext(metaclass=ContextMeta):
     # Set by ContextMeta
