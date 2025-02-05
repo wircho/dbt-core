@@ -122,12 +122,6 @@ def get_rendered(
     capture_macros: bool = False,
     native: bool = False,
 ) -> Any:
-    # if not isinstance(ctx, dict):
-    #     import pdb; pdb.set_trace()
-    #     print("ctx is not a dict!!")
-    # if 'dbt_unit_testing' not in ctx and len(ctx) > 30:
-    #     import pdb; pdb.set_trace()
-    #     print("dbt_unit_testing not in ctx!!")
     # performance optimization: if there are no jinja control characters in the
     # string, we can just return the input. Fall back to jinja if the type is
     # not a string or if native rendering is enabled (so '1' -> 1, etc...)
