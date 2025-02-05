@@ -124,29 +124,6 @@ class MacroNamespaceBuilder:
         self.thread_ctx = thread_ctx
         self.node = node
 
-    # def _add_macro_to(
-    #     self,
-    #     hierarchy: Dict[str, FlatNamespace],
-    #     macro: Macro,
-    #     macro_func: MacroGenerator,
-    # ):
-    #     if macro.package_name in hierarchy:
-    #         namespace = hierarchy[macro.package_name]
-    #     else:
-    #         namespace = MutableMappingWrapper({})
-    #         hierarchy[macro.package_name] = namespace
-
-    #     if macro.name in namespace:
-    #         raise DuplicateMacroNameError(macro_func.macro, macro, macro.package_name)
-    #     hierarchy[macro.package_name][macro.name] = macro_func
-
-    # def add_macro(self, package_name, macro: Macro, ctx: Dict[str, Any]) -> None:
-    #     assert package_name == macro.package_name
-    #     macro_name: str = macro.name
-
-    #     # MacroGenerator is in clients/jinja.py
-    #     # a MacroGenerator object is a callable object that will
-    #     # execute the MacroGenerator.__call__ function
     #     macro_func: MacroGenerator = MacroGenerator(macro, ctx, self.node, self.thread_ctx)
     #     # if macro.name == "ref":
     #     #     import pdb
